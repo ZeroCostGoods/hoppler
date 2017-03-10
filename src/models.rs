@@ -4,6 +4,8 @@ use diesel::types::{Nullable, BigInt, Integer, Timestamp};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(Insertable)]
+#[table_name = "events"]
 pub struct JsonEvent {
     pub timestamp: i64,
     pub session_id: String,
@@ -20,9 +22,10 @@ pub struct JsonEvent {
 }
 
 #[derive(Queryable)]
+#[derive(Serialize, Deserialize)]
 pub struct DbEvent {
-    pub id: Integer,
-    pub timestamp: BigInt,
+    pub id: i32,
+    pub timestamp: i64,
     pub session_id: String,
     pub time_on_page: Option<i32>,
     pub username: String,
@@ -34,20 +37,6 @@ pub struct DbEvent {
     pub prior_hostname: Option<String>,
     pub prior_pathname: Option<String>,
     pub prior_search: Option<String>
-}
-
-struct T64(i64);
-
-impl Expression for T64{
-    type SqlType = Nullable<BigInt>;
-}
-
-#[derive(Insertable)]
-#[table_name="events"]
-pub struct NewDbEvent {
-    pub timestamp: Timestamp,
-//    pub session_id: &'a String,
-//    pub time_on_page: &'a Option<Integer>
 }
 
 #[derive(Deserialize)]

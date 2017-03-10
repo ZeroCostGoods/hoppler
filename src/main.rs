@@ -28,7 +28,7 @@ pub mod models;
 pub mod schema;
 
 use http_request_host::HttpRequestHost;
-use models::{JsonEvent, DbEvent, NewDbEvent};
+use models::{DbEvent};
 
 type DbConn = Mutex<MysqlConnection>;
 
@@ -49,18 +49,22 @@ fn index() -> String {
 
 #[get("/events")]
 fn get_events(db: State<DbConn>) -> String {
-//    use schema::events::dsl::*;
-//
-//    let mut db = db.inner().lock().unwrap();
-//    let results = events.filter(in_focus.eq(true))
-//        .load::<models::DbEvent>(&*db)
-//        .expect("Error loading events");
-//
-//    for event in results {
-//        println!("{} {} {}", event.timestamp, event.hostname, event.pathname)
-//    }
+    use schema::events::dsl::*;
 
-    format!("Done")
+    let db = db.inner().lock().unwrap();
+    let results = events
+        .load::<DbEvent>(&*db)
+        .expect("Error loading events");
+
+    let mut output:String = String::from("{ series:");
+    for event in results {
+        let json = serde_json::to_string_pretty(&event).unwrap();
+        output = output + "[" + &json + "],";
+    }
+
+    output = output + "}";
+
+    format!("{}", output)
 }
 
 #[post("/events", data = "<events>")]
@@ -69,15 +73,12 @@ fn post_events<'a>(db: State<DbConn>, events: JSON<models::EventsList>, req_host
 
     let mut db = db.inner().lock().unwrap();
     for event in events.events.iter() {
-        let new_event = NewDbEvent {
-            timestamp: event.timestamp
-        };
-
-        diesel::insert(&new_event).into(events::table)
+        diesel::insert(event).into(events::table)
             .execute(&*db)
             .expect("Error saving new event");
-        println!("{}", event.timestamp);
     }
+
+    println!("Wrote {} events to the DB", events.events.len());
 
     Response::build()
         .raw_header("access-control-allow-credentials", "true")
@@ -88,12 +89,6 @@ fn post_events<'a>(db: State<DbConn>, events: JSON<models::EventsList>, req_host
 }
 
 fn main() {
-//    use schema::events::dsl::*;
-
     let dbconnection = hopplerdb::establish_connection();
-
-//    let results = events.filter(in_focus.eq(true))
-//        .load::<models::Event>(&dbconnection)
-//        .expect("Error loading events");
-    rocket::ignite().manage(Mutex::new(dbconnection)).mount("/", routes![index, options_handler, post_events]).launch();
+    rocket::ignite().manage(Mutex::new(dbconnection)).mount("/", routes![index, options_handler, get_events, post_events]).launch();
 }
