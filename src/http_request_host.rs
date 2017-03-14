@@ -1,7 +1,5 @@
-use rocket_contrib::{JSON, Value};
 use rocket::http::Status;
 use rocket::Outcome;
-use rocket::response::{self, Response, Responder};
 use rocket::request::{self, Request, FromRequest};
 use std;
 

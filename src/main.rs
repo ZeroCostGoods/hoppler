@@ -3,23 +3,18 @@
 
 #[macro_use] extern crate diesel;
 #[macro_use] extern crate diesel_codegen;
-#[macro_use] extern crate rocket_contrib;
 #[macro_use] extern crate serde_derive;
 
 extern crate dotenv;
 extern crate rocket;
+extern crate rocket_contrib;
 extern crate serde_json;
 
 use diesel::prelude::*;
 use diesel::mysql::MysqlConnection;
-use dotenv::dotenv;
-use rocket_contrib::{JSON, Value};
-use rocket::http::Status;
-use rocket::Outcome;
-use rocket::response::{self, Response, Responder};
-use rocket::request::{self, Request, FromRequest};
+use rocket_contrib::{JSON};
+use rocket::response::{Response};
 use rocket::State;
-use std::env;
 use std::sync::Mutex;
 
 mod http_request_host;
@@ -71,7 +66,7 @@ fn get_events(db: State<DbConn>) -> String {
 fn post_events<'a>(db: State<DbConn>, events: JSON<models::EventsList>, req_host: HttpRequestHost) -> Response<'a> {
     use schema::events;
 
-    let mut db = db.inner().lock().unwrap();
+    let db = db.inner().lock().unwrap();
     for event in events.events.iter() {
         diesel::insert(event).into(events::table)
             .execute(&*db)
