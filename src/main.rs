@@ -1,4 +1,4 @@
-#![feature(plugin)]
+#![feature(plugin, custom_derive)]
 #![plugin(rocket_codegen)]
 
 #[macro_use] extern crate diesel;
@@ -17,21 +17,36 @@ use rocket::response::{Response};
 use rocket::State;
 use std::sync::Mutex;
 
-mod http_request_host;
+mod options;
+mod req_headers;
 pub mod hopplerdb;
 pub mod models;
 pub mod schema;
 
-use http_request_host::HttpRequestHost;
+use options::{PostEventsOptions};
+use req_headers::ReqHeaders;
 use models::{DbEvent};
 
+use std::collections::HashMap;
+
+// Our database mutex so we can pass it to each route handler
 type DbConn = Mutex<MysqlConnection>;
 
 #[options("/events")]
-fn options_handler<'a>(req_host: HttpRequestHost) -> Response<'a> {
+fn options_events_handler<'a>(req_headers: ReqHeaders) -> Response<'a> {
     Response::build()
         .raw_header("access-control-allow-credentials", "true")
-        .raw_header("Access-Control-Allow-Origin", req_host.origin)
+        .raw_header("Access-Control-Allow-Origin", req_headers.origin)
+        .raw_header("Access-Control-Allow-Methods", "OPTIONS, POST")
+        .raw_header("Access-Control-Allow-Headers", "Content-Type")
+        .finalize()
+}
+
+#[options("/events?<req_options>")]
+fn options_events_handler_with_options<'a>(req_headers: ReqHeaders, req_options: PostEventsOptions) -> Response<'a> {
+    Response::build()
+        .raw_header("access-control-allow-credentials", "true")
+        .raw_header("Access-Control-Allow-Origin", req_headers.origin)
         .raw_header("Access-Control-Allow-Methods", "OPTIONS, POST")
         .raw_header("Access-Control-Allow-Headers", "Content-Type")
         .finalize()
@@ -62,12 +77,24 @@ fn get_events(db: State<DbConn>) -> String {
     format!("{}", output)
 }
 
-#[post("/events", data = "<events>")]
-fn post_events<'a>(db: State<DbConn>, events: JSON<models::EventsList>, req_host: HttpRequestHost) -> Response<'a> {
+#[post("/events?<req_options>", data = "<events>")]
+fn post_events<'a>(db: State<DbConn>, mut events: JSON<models::EventsList>, req_headers: ReqHeaders, req_options: PostEventsOptions) -> Response<'a> {
     use schema::events;
 
+    let mut user_override:Option<&str> = None;
+
+    if let Some(ref header_name) = req_options.uh {
+        if let Some(ref header_value) = req_headers.headers.get(header_name) {
+            user_override = Some(header_value);
+            println!("Have user override {} {}", header_name, header_value);
+        }
+    }
+
     let db = db.inner().lock().unwrap();
-    for event in events.events.iter() {
+    for event in events.events.iter_mut() {
+        if let Some(username) = user_override {
+            event.username = username.into();
+        }
         diesel::insert(event).into(events::table)
             .execute(&*db)
             .expect("Error saving new event");
@@ -77,7 +104,7 @@ fn post_events<'a>(db: State<DbConn>, events: JSON<models::EventsList>, req_host
 
     Response::build()
         .raw_header("access-control-allow-credentials", "true")
-        .raw_header("Access-Control-Allow-Origin", req_host.origin)
+        .raw_header("Access-Control-Allow-Origin", req_headers.origin)
         .raw_header("Access-Control-Allow-Methods", "OPTIONS, POST")
         .raw_header("Access-Control-Allow-Headers", "Content-Type")
         .finalize()
@@ -85,5 +112,5 @@ fn post_events<'a>(db: State<DbConn>, events: JSON<models::EventsList>, req_host
 
 fn main() {
     let dbconnection = hopplerdb::establish_connection();
-    rocket::ignite().manage(Mutex::new(dbconnection)).mount("/", routes![index, options_handler, get_events, post_events]).launch();
+    rocket::ignite().manage(Mutex::new(dbconnection)).mount("/", routes![index, options_events_handler, options_events_handler_with_options, get_events, post_events]).launch();
 }
