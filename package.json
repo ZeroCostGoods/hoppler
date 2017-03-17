@@ -1,0 +1,23 @@
+{
+  "name": "hopplerui",
+  "version": "0.1.0",
+  "description": "Hoppler UI",
+  "main": "index.js",
+  "dependencies": {
+    "hopplerjs": "^0.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diggyk/hoppler.git"
+  },
+  "author": "Digant C Kasundra <diggyk@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/diggyk/hoppler/issues"
+  },
+  "homepage": "https://github.com/diggyk/hoppler#readme"
+}

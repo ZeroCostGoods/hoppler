@@ -16,6 +16,7 @@ use rocket_contrib::{JSON};
 use rocket::response::{Response};
 use rocket::State;
 use std::sync::Mutex;
+use std::io;
 
 mod options;
 mod req_headers;
@@ -25,6 +26,7 @@ pub mod schema;
 
 use options::{PostEventsOptions};
 use req_headers::ReqHeaders;
+use rocket::response::NamedFile;
 use models::{DbEvent};
 
 use std::collections::HashMap;
@@ -55,6 +57,11 @@ fn options_events_handler_with_options<'a>(req_headers: ReqHeaders, req_options:
 #[get("/")]
 fn index() -> String {
     format!("Hello, world!")
+}
+
+#[get("/getjs")]
+fn get_hopplerjs() -> io::Result<NamedFile> {
+    NamedFile::open("node_modules/hopplerjs/dist/hopplerjs.js")
 }
 
 #[get("/events")]
@@ -112,5 +119,5 @@ fn post_events<'a>(db: State<DbConn>, mut events: JSON<models::EventsList>, req_
 
 fn main() {
     let dbconnection = hopplerdb::establish_connection();
-    rocket::ignite().manage(Mutex::new(dbconnection)).mount("/", routes![index, options_events_handler, options_events_handler_with_options, get_events, post_events]).launch();
+    rocket::ignite().manage(Mutex::new(dbconnection)).mount("/", routes![index, get_hopplerjs, options_events_handler, options_events_handler_with_options, get_events, post_events]).launch();
 }
