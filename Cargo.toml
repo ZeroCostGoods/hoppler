@@ -2,6 +2,9 @@
 authors = ["Digant Kasundra <digant@dropbox.com>"]
 name = "hoppler"
 version = "0.1.0"
+repository = "https://github.com/ZeroCostGoods/hoppler"
+license = "MIT OR Apache-2.0"
+
 
 [dependencies]
 dotenv = "0.8.0"
