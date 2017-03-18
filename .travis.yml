@@ -1,0 +1,39 @@
+sudo: false
+language: rust
+
+# This project uses Rocket and so only builds
+# on nightly currently. :(
+rust:
+  # Pin a version we know is good so that
+  # we don't rely on nightly being functional
+  - nightly-2017-03-16
+  - nightly
+
+matrix:
+  allow_failures:
+      - rust: nightly
+
+# Load travis-cargo
+before_script:
+  - |
+      pip install 'travis-cargo<0.2' --user &&
+      export PATH=$HOME/.local/bin:$PATH
+
+os:
+  - linux
+
+script:
+  - |
+      travis-cargo build &&
+      travis-cargo test &&
+      travis-cargo bench &&
+      travis-cargo doc
+
+notifications:
+  email:
+    on_success: never
+
+env:
+  global:
+    # Override the default `--features unstable` used for the nightly branch
+    - TRAVIS_CARGO_NIGHTLY_FEATURE=""

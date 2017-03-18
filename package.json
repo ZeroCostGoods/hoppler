@@ -12,12 +12,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/diggyk/hoppler.git"
+    "url": "https://github.com/ZeroCostGoods/hoppler.git"
   },
   "author": "Digant C Kasundra <diggyk@gmail.com>",
-  "license": "MIT",
+  "license": "(MIT OR Apache-2.0)",
   "bugs": {
-    "url": "https://github.com/diggyk/hoppler/issues"
+    "url": "https://github.com/ZeroCostGoods/hoppler/issues"
   },
-  "homepage": "https://github.com/diggyk/hoppler#readme"
+  "homepage": "https://github.com/ZeroCostGoods/hoppler#readme"
 }
