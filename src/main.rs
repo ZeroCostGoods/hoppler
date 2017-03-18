@@ -113,5 +113,6 @@ fn post_events<'a>(db: State<DbConn>, mut events: JSON<models::EventsList>, req_
 
 fn main() {
     let dbconnection = hopplerdb::establish_connection();
+    diesel::migrations::run_pending_migrations(&dbconnection).expect("Failed to run DB migrations.");
     rocket::ignite().manage(Mutex::new(dbconnection)).mount("/", routes![get_hopplerjs, options_events_handler, options_events_handler_with_options, get_events, post_events]).launch();
 }
