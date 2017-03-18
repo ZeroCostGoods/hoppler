@@ -9,6 +9,7 @@ extern crate dotenv;
 extern crate rocket;
 extern crate rocket_contrib;
 extern crate serde_json;
+extern crate serde_yaml;
 
 use diesel::prelude::*;
 use diesel::mysql::MysqlConnection;
@@ -28,8 +29,6 @@ use options::{PostEventsOptions};
 use req_headers::ReqHeaders;
 use rocket::response::NamedFile;
 use models::{DbEvent};
-
-use std::collections::HashMap;
 
 // Our database mutex so we can pass it to each route handler
 type DbConn = Mutex<MysqlConnection>;
@@ -52,11 +51,6 @@ fn options_events_handler_with_options<'a>(req_headers: ReqHeaders, req_options:
         .raw_header("Access-Control-Allow-Methods", "OPTIONS, POST")
         .raw_header("Access-Control-Allow-Headers", "Content-Type")
         .finalize()
-}
-
-#[get("/")]
-fn index() -> String {
-    format!("Hello, world!")
 }
 
 #[get("/getjs")]
@@ -119,5 +113,5 @@ fn post_events<'a>(db: State<DbConn>, mut events: JSON<models::EventsList>, req_
 
 fn main() {
     let dbconnection = hopplerdb::establish_connection();
-    rocket::ignite().manage(Mutex::new(dbconnection)).mount("/", routes![index, get_hopplerjs, options_events_handler, options_events_handler_with_options, get_events, post_events]).launch();
+    rocket::ignite().manage(Mutex::new(dbconnection)).mount("/", routes![get_hopplerjs, options_events_handler, options_events_handler_with_options, get_events, post_events]).launch();
 }
