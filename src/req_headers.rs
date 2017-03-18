@@ -1,8 +1,6 @@
-use rocket::http::{Header, Status};
 use rocket::Outcome;
 use rocket::request::{self, Request, FromRequest};
 
-use std;
 use std::collections::HashMap;
 
 #[derive(Debug)]

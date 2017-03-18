@@ -11,6 +11,7 @@ rocket_contrib = "0.2.2"
 serde = "0.9"
 serde_derive = "0.9"
 serde_json = "0.9"
+serde_yaml = "0.6.2"
 
 [dependencies.diesel]
 features = ["mysql"]
