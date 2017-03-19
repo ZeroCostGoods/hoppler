@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 
 
 [dependencies]
-dotenv = "0.8.0"
 rocket = "0.2.2"
 rocket_codegen = "0.2.2"
 rocket_contrib = "0.2.2"
