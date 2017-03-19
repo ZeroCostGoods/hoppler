@@ -18,7 +18,7 @@ pub struct JsonEvent {
     pub time_at_focus_state: Option<i32>,
     pub prior_hostname: Option<String>,
     pub prior_pathname: Option<String>,
-    pub prior_search: Option<String>
+    pub prior_search: Option<String>,
 }
 
 #[derive(Queryable)]
@@ -38,10 +38,10 @@ pub struct DbEvent {
     pub time_at_focus_state: Option<i32>,
     pub prior_hostname: Option<String>,
     pub prior_pathname: Option<String>,
-    pub prior_search: Option<String>
+    pub prior_search: Option<String>,
 }
 
 #[derive(Deserialize)]
 pub struct EventsList {
-    pub events: Vec<JsonEvent>
+    pub events: Vec<JsonEvent>,
 }

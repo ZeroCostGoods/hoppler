@@ -5,7 +5,6 @@
 #[macro_use] extern crate diesel_codegen;
 #[macro_use] extern crate serde_derive;
 
-extern crate dotenv;
 extern crate rocket;
 extern crate rocket_contrib;
 extern crate serde_json;
@@ -36,7 +35,7 @@ type DbConn = Mutex<MysqlConnection>;
 #[options("/events")]
 fn options_events_handler<'a>(req_headers: ReqHeaders) -> Response<'a> {
     Response::build()
-        .raw_header("access-control-allow-credentials", "true")
+        .raw_header("Access-Control-Allow-Credentials", "true")
         .raw_header("Access-Control-Allow-Origin", req_headers.origin)
         .raw_header("Access-Control-Allow-Methods", "OPTIONS, POST")
         .raw_header("Access-Control-Allow-Headers", "Content-Type")
@@ -46,7 +45,7 @@ fn options_events_handler<'a>(req_headers: ReqHeaders) -> Response<'a> {
 #[options("/events?<req_options>")]
 fn options_events_handler_with_options<'a>(req_headers: ReqHeaders, req_options: PostEventsOptions) -> Response<'a> {
     Response::build()
-        .raw_header("access-control-allow-credentials", "true")
+        .raw_header("Access-Control-Allow-Credentials", "true")
         .raw_header("Access-Control-Allow-Origin", req_headers.origin)
         .raw_header("Access-Control-Allow-Methods", "OPTIONS, POST")
         .raw_header("Access-Control-Allow-Headers", "Content-Type")
@@ -63,11 +62,10 @@ fn get_events(db: State<DbConn>) -> String {
     use schema::events::dsl::*;
 
     let db = db.inner().lock().unwrap();
-    let results = events
-        .load::<DbEvent>(&*db)
+    let results = events.load::<DbEvent>(&*db)
         .expect("Error loading events");
 
-    let mut output:String = String::from("{ series:");
+    let mut output: String = String::from("{ series:");
     for event in results {
         let json = serde_json::to_string_pretty(&event).unwrap();
         output = output + "[" + &json + "],";
@@ -82,7 +80,7 @@ fn get_events(db: State<DbConn>) -> String {
 fn post_events<'a>(db: State<DbConn>, mut events: JSON<models::EventsList>, req_headers: ReqHeaders, req_options: PostEventsOptions) -> Response<'a> {
     use schema::events;
 
-    let mut user_override:Option<&str> = None;
+    let mut user_override: Option<&str> = None;
 
     if let Some(ref header_name) = req_options.uh {
         if let Some(ref header_value) = req_headers.headers.get(header_name) {
@@ -96,7 +94,8 @@ fn post_events<'a>(db: State<DbConn>, mut events: JSON<models::EventsList>, req_
         if let Some(username) = user_override {
             event.username = username.into();
         }
-        diesel::insert(event).into(events::table)
+        diesel::insert(event)
+            .into(events::table)
             .execute(&*db)
             .expect("Error saving new event");
     }
@@ -104,7 +103,7 @@ fn post_events<'a>(db: State<DbConn>, mut events: JSON<models::EventsList>, req_
     println!("Wrote {} events to the DB", events.events.len());
 
     Response::build()
-        .raw_header("access-control-allow-credentials", "true")
+        .raw_header("Access-Control-Allow-Credentials", "true")
         .raw_header("Access-Control-Allow-Origin", req_headers.origin)
         .raw_header("Access-Control-Allow-Methods", "OPTIONS, POST")
         .raw_header("Access-Control-Allow-Headers", "Content-Type")
@@ -113,6 +112,18 @@ fn post_events<'a>(db: State<DbConn>, mut events: JSON<models::EventsList>, req_
 
 fn main() {
     let dbconnection = hopplerdb::establish_connection();
-    diesel::migrations::run_pending_migrations(&dbconnection).expect("Failed to run DB migrations.");
-    rocket::ignite().manage(Mutex::new(dbconnection)).mount("/", routes![get_hopplerjs, options_events_handler, options_events_handler_with_options, get_events, post_events]).launch();
+
+    diesel::migrations::run_pending_migrations(&dbconnection)
+        .expect("Failed to run DB migrations.");
+
+    rocket::ignite()
+        .manage(Mutex::new(dbconnection))
+        .mount("/", routes![
+            get_hopplerjs,
+            options_events_handler,
+            options_events_handler_with_options,
+            get_events,
+            post_events,
+        ])
+        .launch();
 }
