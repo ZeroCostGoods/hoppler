@@ -32,24 +32,23 @@ use models::{DbEvent};
 // Our database mutex so we can pass it to each route handler
 type DbConn = Mutex<MysqlConnection>;
 
-#[options("/events")]
-fn options_events_handler<'a>(req_headers: ReqHeaders) -> Response<'a> {
+fn cors_headers<'a>(origin: String) -> Response<'a> {
     Response::build()
         .raw_header("Access-Control-Allow-Credentials", "true")
-        .raw_header("Access-Control-Allow-Origin", req_headers.origin)
+        .raw_header("Access-Control-Allow-Origin", origin)
         .raw_header("Access-Control-Allow-Methods", "OPTIONS, POST")
         .raw_header("Access-Control-Allow-Headers", "Content-Type")
         .finalize()
 }
 
+#[options("/events")]
+fn options_events_handler<'a>(req_headers: ReqHeaders) -> Response<'a> {
+    cors_headers(req_headers.origin)
+}
+
 #[options("/events?<req_options>")]
 fn options_events_handler_with_options<'a>(req_headers: ReqHeaders, req_options: PostEventsOptions) -> Response<'a> {
-    Response::build()
-        .raw_header("Access-Control-Allow-Credentials", "true")
-        .raw_header("Access-Control-Allow-Origin", req_headers.origin)
-        .raw_header("Access-Control-Allow-Methods", "OPTIONS, POST")
-        .raw_header("Access-Control-Allow-Headers", "Content-Type")
-        .finalize()
+    cors_headers(req_headers.origin)
 }
 
 #[get("/getjs")]

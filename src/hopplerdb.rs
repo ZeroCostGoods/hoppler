@@ -15,9 +15,7 @@ fn get_config() -> Result<ServerConfig, Error> {
     let mut config_file = File::open("config/config.yaml")?;
 
     let mut contents = String::new();
-    if let Err(err) = config_file.read_to_string(&mut contents) {
-        return Err(err);
-    }
+    config_file.read_to_string(&mut contents)?;
 
     let config: ServerConfig = serde_yaml::from_str(contents.as_str()).unwrap();
 

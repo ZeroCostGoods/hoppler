@@ -4,7 +4,7 @@
   "description": "Hoppler UI",
   "main": "index.js",
   "dependencies": {
-    "hopplerjs": "^0.1.0"
+    "hopplerjs": "^0.1.2"
   },
   "devDependencies": {},
   "scripts": {
